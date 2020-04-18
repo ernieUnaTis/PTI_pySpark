@@ -3,8 +3,8 @@ import os
 import shutil
 
 spark_location='/home/ernesto/Descargas/spark-2.4.5-bin-hadoop2.7/' # Set your own
-java8_location= '/usr/lib64/jvm/java-1.8.0-openjdk-1.8.0/jre' # Set your own
-os.environ['JAVA_HOME'] = java8_location
+#java8_location= '/usr/lib64/jvm/java-1.8.0-openjdk-1.8.0/jre' # Set your own
+#os.environ['JAVA_HOME'] = java8_location
 os.environ['PYSPARK_SUBMIT_ARGS'] = '--jars /home/ernesto/Descargas/spark-streaming-kafka-0-8-assembly_2.11-2.4.5.jar pyspark-shell'
 findspark.init()
 
