@@ -30,7 +30,7 @@ ssc = StreamingContext(sc, 10)
 sqlContext = SQLContext(sc)
 
 topic = "notificacion_terceros"
-brokers = "latveria:9092"
+brokers = "127.0.0.1:9092"
 partition = 0
 start = 0
 topicpartion = TopicAndPartition(topic, partition)

@@ -30,7 +30,7 @@ ssc = StreamingContext(sc, 10)
 sqlContext = SQLContext(sc)
 
 topic = "notificacion_mensajeria"
-brokers = "latveria:9092"
+brokers = "127.0.0.1:9092"
 partition = 0
 start = 0
 topicpartion = TopicAndPartition(topic, partition)
@@ -44,11 +44,11 @@ schema = StructType([StructField(str(i), StringType(), True) for i in range(2)])
 def saveData(rdd):
     now = datetime.now()
     current_time = now.strftime("%H%M%S")
-    rdd.saveAsTextFile("resultados/salida_"+current_time)
+    rdd.saveAsTextFile("resultados_mensajeria/salida_"+current_time)
     if not rdd.isEmpty():
         df = sqlContext.createDataFrame(rdd,schema)
         print('  writing file')
-        df.write.parquet("resultados/parquet_"+current_time, mode='append')
+        df.write.parquet("resultados_mensajeria/parquet_"+current_time, mode='append')
 
 
 
