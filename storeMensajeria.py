@@ -30,9 +30,9 @@ ssc = StreamingContext(sc, 10)
 sqlContext = SQLContext(sc)
 
 topic = "notificacion_mensajeria"
-brokers = "127.0.0.1:9092"
+brokers = "localhost:9092"
 partition = 0
-start = 0
+start = 48
 topicpartion = TopicAndPartition(topic, partition)
 fromoffset = {topicpartion: int(start)}
 
@@ -43,10 +43,11 @@ schema = StructType([StructField(str(i), StringType(), True) for i in range(2)])
 
 def saveData(rdd):
     now = datetime.now()
-    current_time = now.strftime("%H%M%S")
-    rdd.saveAsTextFile("resultados_mensajeria/salida_"+current_time)
+    current_time = now.strftime("%Y%m%d_%H%M%S")
+    #rdd.saveAsTextFile("resultados/salidaMensajeria_"+current_time)
     if not rdd.isEmpty():
         df = sqlContext.createDataFrame(rdd,schema)
+        df.write.format("com.databricks.spark.csv").option("header", "true").save("resultados/salidaMensajeria_"+current_time)
         print('  writing file')
         df.write.parquet("resultados_mensajeria/parquet_"+current_time, mode='append')
 

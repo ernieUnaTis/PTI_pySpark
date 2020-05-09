@@ -20,13 +20,8 @@ from pyspark.sql.types import StructType
 from pyspark.sql.types import StructField
 from pyspark.sql.types import StringType
 
-
-
-#VariablesHadoop
-
-
 sc = pyspark.SparkContext()
-ssc = StreamingContext(sc, 10)
+ssc = StreamingContext(sc, 20)
 sqlContext = SQLContext(sc)
 
 topic = "notificacion_eventos_internos"
@@ -43,13 +38,14 @@ schema = StructType([StructField(str(i), StringType(), True) for i in range(2)])
 
 def saveData(rdd):
     now = datetime.now()
-    current_time = now.strftime("%H%M%S")
-    rdd.saveAsTextFile("resultados_eventos_internos/salida_"+current_time)
+    current_time = now.strftime("%Y%m%d_%H%M%S")
+    #rdd.saveAsTextFile("resultados/raw-${System.currentTimeInMillis()}.txt")
+    #rdd.map(lambda row: str(row[0]) + "\t" + str(row[1])).saveAsTextFile("resultados/salidaEventosInternos_"+current_time+".txt")
     if not rdd.isEmpty():
         df = sqlContext.createDataFrame(rdd,schema)
+        df.write.format("com.databricks.spark.csv").option("header", "true").save("resultados/salidaEventosInternos_"+current_time)
         print('  writing file')
         df.write.parquet("resultados_eventos_internos/parquet_"+current_time, mode='append')
-
 
 
 data.foreachRDD(saveData)

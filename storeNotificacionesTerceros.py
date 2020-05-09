@@ -24,37 +24,44 @@ from pyspark.sql.types import StringType
 
 #VariablesHadoop
 
+try:
+    sc = pyspark.SparkContext()
+    ssc = StreamingContext(sc, 10)
+    sqlContext = SQLContext(sc)
 
-sc = pyspark.SparkContext()
-ssc = StreamingContext(sc, 10)
-sqlContext = SQLContext(sc)
+    topic = "notificacion_terceros"
+    brokers = "127.0.0.1:9092"
+    partition = 0
+    start = 0
+    topicpartion = TopicAndPartition(topic, partition)
+    fromoffset = {topicpartion: int(start)}
 
-topic = "notificacion_terceros"
-brokers = "127.0.0.1:9092"
-partition = 0
-start = 0
-topicpartion = TopicAndPartition(topic, partition)
-fromoffset = {topicpartion: int(start)}
+    kafkaParams = {"metadata.broker.list":brokers}
+    kafkaParams["auto.offset.reset"] = "largest"
+    kafkaParams["enable.auto.commit"] = "false"
 
-kvs = KafkaUtils.createDirectStream(ssc, [topic], {"metadata.broker.list": brokers}, fromOffsets = fromoffset)
-data = kvs.map(lambda line: line)
-#data.write.parquet("hdfs://data.parquet")
-schema = StructType([StructField(str(i), StringType(), True) for i in range(2)])
+    kvs = KafkaUtils.createDirectStream(ssc, [topic], kafkaParams, fromOffsets = fromoffset)
+    data = kvs.map(lambda line: line)
+    #data.write.parquet("hdfs://data.parquet")
+    schema = StructType([StructField(str(i), StringType(), True) for i in range(2)])
 
-def saveData(rdd):
-    now = datetime.now()
-    current_time = now.strftime("%H%M%S")
-    rdd.saveAsTextFile("resultados/salida_"+current_time)
-    if not rdd.isEmpty():
-        df = sqlContext.createDataFrame(rdd,schema)
-        print('  writing file')
-        df.write.parquet("resultados/parquet_"+current_time, mode='append')
+    def saveData(rdd):
+        now = datetime.now()
+        current_time = now.strftime("%Y%m%d_%H%M%S")
+        #rdd.saveAsTextFile("resultados/salidaNotificacionesTerceros_"+current_time)
+        if not rdd.isEmpty():
+            df = sqlContext.createDataFrame(rdd,schema)
+            df.write.format("com.databricks.spark.csv").option("header", "true").save("resultados/salidaNotificacionesTerceros_"+current_time)
+            print('  writing file')
+            df.write.parquet("resultados_notificaciones_terceros/parquet_"+current_time, mode='append')
 
 
 
-data.foreachRDD(saveData)
-data.pprint()
+    data.foreachRDD(saveData)
+    data.pprint()
 
-ssc.start()
-ssc.awaitTermination()
-sc.stop()
+    ssc.start()
+    ssc.awaitTermination()
+    sc.stop()
+except EOFError as error:
+    print("Error EOF")
